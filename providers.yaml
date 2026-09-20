@@ -1,0 +1,200 @@
+# Provider rules are evaluated by priority (highest first). Exact email-domain
+# matches are evaluated before MX matches, so consumer domains such as gmail.com
+# remain distinct from business domains using the same provider infrastructure.
+providers:
+  - name: Gmail
+    priority: 300
+    domains:
+      - gmail.com
+      - googlemail.com
+    mx:
+      - gmail-smtp-in.l.google.com
+      - "*.gmail-smtp-in.l.google.com"
+
+  # Consumer Microsoft mailbox domains are classified by the address domain,
+  # never by shared Microsoft-hosted MX infrastructure.
+  - name: Microsoft
+    priority: 290
+    domains:
+      - outlook.com
+      - outlook.co.uk
+      - outlook.jp
+      - hotmail.com
+      - hotmail.co.uk
+      - hotmail.ca
+      - hotmail.com.au
+      - hotmail.co.jp
+      - hotmail.de
+      - hotmail.es
+      - hotmail.fr
+      - hotmail.it
+      - live.com
+      - live.co.uk
+      - live.ca
+      - live.com.au
+      - live.de
+      - live.fr
+      - live.it
+      - live.jp
+      - live.nl
+      - msn.com
+      - passport.com
+      - windowslive.com
+
+  # Private and organizational domains using Microsoft's hosted Exchange
+  # infrastructure are Office 365, regardless of organization type.
+  - name: Office 365
+    priority: 280
+    domains:
+      - office365.com
+      - "*.onmicrosoft.com"
+    mx:
+      - protection.outlook.com
+      - "*.mail.protection.outlook.com"
+      - "*.protection.outlook.com"
+      - "*.olc.protection.outlook.com"
+      - outlook.office365.com
+      - "*.office365.com"
+
+  - name: AOL
+    priority: 270
+    domains:
+      - aol.com
+      - aim.com
+    mx:
+      - "*.mx.aol.com"
+      - "*.mail.gm0.yahoodns.net"
+
+  - name: Yahoo
+    priority: 260
+    domains:
+      - yahoo.com
+      - yahoo.co.uk
+      - yahoo.ca
+      - yahoo.com.au
+      - ymail.com
+      - rocketmail.com
+    mx:
+      - "*.yahoodns.net"
+      - "*.yahoo.com"
+
+  - name: iCloud
+    priority: 250
+    domains:
+      - icloud.com
+      - me.com
+      - mac.com
+    mx:
+      - "*.mail.icloud.com"
+      - "*.icloud.com"
+
+  - name: Proton
+    priority: 240
+    domains:
+      - proton.me
+      - protonmail.com
+      - pm.me
+    mx:
+      - "*.protonmail.ch"
+      - "*.protonmail.net"
+
+  - name: Zoho
+    priority: 230
+    domains:
+      - zohomail.com
+      - zoho.com
+    mx:
+      - "*.zoho.com"
+      - "*.zoho.eu"
+      - "*.zoho.in"
+      - "*.zoho.com.au"
+
+  - name: GMX
+    priority: 220
+    domains:
+      - gmx.com
+      - gmx.net
+      - gmx.de
+      - gmx.co.uk
+    mx:
+      - "*.gmx.net"
+      - "*.gmx.com"
+
+  - name: Yandex
+    priority: 210
+    domains:
+      - yandex.com
+      - yandex.ru
+      - ya.ru
+    mx:
+      - "*.yandex.net"
+      - "*.yandex.ru"
+
+  - name: Mail.ru
+    priority: 200
+    domains:
+      - mail.ru
+      - inbox.ru
+      - list.ru
+      - bk.ru
+      - internet.ru
+    mx:
+      - "*.mail.ru"
+
+  - name: QQ
+    priority: 190
+    domains:
+      - qq.com
+      - foxmail.com
+    mx:
+      - "*.qq.com"
+
+  - name: "163"
+    priority: 180
+    domains:
+      - 163.com
+      - 126.com
+      - yeah.net
+    mx:
+      - "*.163.com"
+      - "*.126.com"
+      - "*.netease.com"
+
+  - name: GSuite
+    priority: 170
+    mx:
+      - aspmx.l.google.com
+      - "*.aspmx.l.google.com"
+      - "*.googlemail.com"
+      - smtp.google.com
+      - mx.google.com
+
+  - name: Webmails
+    priority: 100
+    domains:
+      - fastmail.com
+      - fastmail.fm
+      - mail.com
+      - email.com
+      - web.de
+      - tutanota.com
+      - tutamail.com
+      - tuta.com
+      - hushmail.com
+      - inbox.lv
+      - rediffmail.com
+      - rambler.ru
+      - ukr.net
+      - laposte.net
+      - libero.it
+      - orange.fr
+      - wanadoo.fr
+      - seznam.cz
+    mx:
+      - "*.messagingengine.com"
+      - "*.tutanota.de"
+      - "*.tuta.com"
+      - "*.mail.com"
+      - "*.web.de"
+      - "*.hushmail.com"
+      - "*.inbox.lv"
