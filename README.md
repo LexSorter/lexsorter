@@ -12,7 +12,7 @@ Lex Sorter performs email syntax validation, domain/DNS validation, MX and mail-
 - The Node.js route resolves MX records and checks A/AAAA fallback records when MX is absent.
 - Provider rules live in [`providers.yaml`](./providers.yaml) and support exact domains, exact MX hosts, wildcard MX patterns, and priorities.
 - `Dead` means an address or domain failed Lex Sorter's syntax, domain, DNS, or mail-infrastructure checks. It is not proof that an individual mailbox does not exist.
-- Results remain in the browser and can be copied or exported as one-email-per-line lists.
+- Completed results can be copied or exported as one-email-per-line lists and are saved for 90 days for the authenticated identity that created them.
 
 ## Local development
 
@@ -41,7 +41,11 @@ The `/api/admin/access` route is protected with `LEX_SORTER_ADMIN_SECRET`. It ac
 - `PATCH` with `{ "id", "action": "activate" }` to activate a person.
 - `PATCH` with `{ "id", "action": "revoke" }` to revoke a person and immediately invalidate their current session.
 
-Send the admin secret as a `Bearer` authorization header over HTTPS. Access codes are converted to keyed hashes before Redis storage and are never returned by the API. Redis stores only authorization records, active-session pointers, expiring sessions, and login rate limits; uploaded files and sorted email lists remain in the browser.
+Send the admin secret as a `Bearer` authorization header over HTTPS. Access codes are converted to keyed hashes before Redis storage and are never returned by the API. Redis stores authorization records, active-session pointers, expiring sessions, login rate limits, and identity-scoped saved sorting results. Uploaded files are not stored. Saved results contain normalized email addresses and expire automatically after exactly 90 days.
+
+## Saved Lists
+
+Each successful sorting job is saved automatically under the authenticated identity. The server derives the identity from the existing session; the browser cannot select another identity. Saved-list records use Redis TTL and an identity-scoped index, and stale index entries are removed whenever history is read. Opening a saved list reuses the standard results table, including Copy and Export List. If persistence is temporarily unavailable, the completed in-browser result remains usable.
 
 ## Checks
 

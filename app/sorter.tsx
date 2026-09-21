@@ -14,9 +14,25 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import { ChangeEvent, DragEvent, useMemo, useRef, useState } from "react";
+import {
+  ChangeEvent,
+  DragEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import logo from "@/logo.png";
 import { ResultsTable } from "./results-table";
+import SavedListsPanel from "./saved-lists-panel";
+import {
+  deleteSavedList,
+  fetchSavedList,
+  fetchSavedListSummaries,
+  persistSortCompletion,
+  type Requester,
+} from "./saved-lists-client";
 import {
   extractEmailCandidates,
   getEmailDomain,
@@ -31,6 +47,7 @@ import {
   type ProviderResults,
   type ResolveResponse,
 } from "@/lib/types";
+import type { SavedListSummary } from "@/lib/saved-lists/types";
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024;
 const BATCH_SIZE = 200;
@@ -116,6 +133,10 @@ export default function Sorter() {
   const [results, setResults] = useState<ProviderResults>(() => emptyResults());
   const [completedDuplicates, setCompletedDuplicates] = useState(0);
   const [completedDomainCount, setCompletedDomainCount] = useState(0);
+  const [savedLists, setSavedLists] = useState<SavedListSummary[]>([]);
+  const [savedListsLoading, setSavedListsLoading] = useState(true);
+  const [savedListsMessage, setSavedListsMessage] = useState("");
+  const [savedListsBusyJobId, setSavedListsBusyJobId] = useState("");
   const [progress, setProgress] = useState<ProgressState>({
     domainsProcessed: 0,
     totalDomains: 0,
@@ -132,6 +153,29 @@ export default function Sorter() {
   const progressPercent = progress.totalEmails
     ? Math.min(100, Math.round((progress.emailsProcessed / progress.totalEmails) * 100))
     : 0;
+
+  const authenticatedRequest = useCallback<Requester>(async (input, init) => {
+    const response = await fetch(input, init);
+    if (response.status === 401) {
+      window.location.replace("/unlock");
+    }
+    return response;
+  }, []);
+
+  const loadSavedLists = useCallback(async () => {
+    try {
+      const lists = await fetchSavedListSummaries(authenticatedRequest);
+      setSavedLists(lists);
+    } catch {
+      setSavedListsMessage("Saved lists could not be loaded. You can still sort emails.");
+    } finally {
+      setSavedListsLoading(false);
+    }
+  }, [authenticatedRequest]);
+
+  useEffect(() => {
+    void loadSavedLists();
+  }, [loadSavedLists]);
 
   function markInputChanged() {
     setError("");
@@ -217,8 +261,10 @@ export default function Sorter() {
     if (prepared.emails.length === 0 || phase === "sorting") return;
 
     setError("");
+    setSavedListsMessage("");
     setPhase("sorting");
     const snapshot = [...prepared.emails];
+    const duplicatesRemoved = prepared.duplicatesRemoved;
     const nextResults = emptyResults();
     const validEmails: string[] = [];
 
@@ -300,7 +346,7 @@ export default function Sorter() {
       }
 
       setResults(nextResults);
-      setCompletedDuplicates(prepared.duplicatesRemoved);
+      setCompletedDuplicates(duplicatesRemoved);
       setCompletedDomainCount(domains.length);
       setProgress({
         domainsProcessed: domains.length,
@@ -309,6 +355,29 @@ export default function Sorter() {
         totalEmails: snapshot.length,
       });
       setPhase("complete");
+
+      try {
+        await persistSortCompletion(
+          {
+            status: "complete",
+            payload: {
+              sourceName: selectedFileName || undefined,
+              originalInputCount: snapshot.length + duplicatesRemoved,
+              normalizedUniqueCount: snapshot.length,
+              duplicatesRemoved,
+              domainCount: domains.length,
+              results: nextResults,
+            },
+          },
+          authenticatedRequest,
+        );
+        setSavedListsMessage("Completed list saved for 90 days.");
+        await loadSavedLists();
+      } catch {
+        setSavedListsMessage(
+          "Your results are ready, but this list could not be saved. Copy and Export still work.",
+        );
+      }
     } catch (sortingError) {
       setError(
         sortingError instanceof Error
@@ -316,6 +385,48 @@ export default function Sorter() {
           : "Sorting stopped because the DNS service was unavailable.",
       );
       setPhase("ready");
+    }
+  }
+
+  async function openSavedList(jobId: string) {
+    setSavedListsBusyJobId(jobId);
+    setSavedListsMessage("");
+    try {
+      const savedList = await fetchSavedList(jobId, authenticatedRequest);
+      setResults(savedList.results);
+      setCompletedDuplicates(savedList.duplicatesRemoved);
+      setCompletedDomainCount(savedList.domainCount);
+      setProgress({
+        domainsProcessed: savedList.domainCount,
+        totalDomains: savedList.domainCount,
+        emailsProcessed: savedList.normalizedUniqueCount,
+        totalEmails: savedList.normalizedUniqueCount,
+      });
+      setPhase("complete");
+      setError("");
+      setSavedListsMessage(`Opened ${savedList.title}.`);
+    } catch {
+      setSavedListsMessage("That saved list is unavailable or has expired.");
+      await loadSavedLists();
+    } finally {
+      setSavedListsBusyJobId("");
+    }
+  }
+
+  async function removeSavedList(jobId: string) {
+    const list = savedLists.find((candidate) => candidate.jobId === jobId);
+    if (!list || !window.confirm(`Delete “${list.title}”?`)) return;
+
+    setSavedListsBusyJobId(jobId);
+    setSavedListsMessage("");
+    try {
+      await deleteSavedList(jobId, authenticatedRequest);
+      setSavedLists((current) => current.filter((candidate) => candidate.jobId !== jobId));
+      setSavedListsMessage("Saved list deleted.");
+    } catch {
+      setSavedListsMessage("That saved list could not be deleted.");
+    } finally {
+      setSavedListsBusyJobId("");
     }
   }
 
@@ -523,6 +634,15 @@ export default function Sorter() {
         </section>
       </section>
 
+      <SavedListsPanel
+        lists={savedLists}
+        loading={savedListsLoading}
+        busyJobId={savedListsBusyJobId}
+        message={savedListsMessage}
+        onOpen={openSavedList}
+        onDelete={removeSavedList}
+      />
+
       {phase === "complete" && (
         <section className="results-section" aria-labelledby="results-heading">
           <div className="complete-heading">
@@ -551,7 +671,7 @@ export default function Sorter() {
 
       <footer>
         <span><Globe2 aria-hidden="true" />DNS and MX records only</span>
-        <span>Email addresses stay in your browser; only domains are checked.</span>
+        <span>Completed lists are securely saved for 90 days.</span>
       </footer>
     </main>
   );

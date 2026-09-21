@@ -133,7 +133,8 @@ footer svg {
 }
 
 .workspace,
-.results-section {
+.results-section,
+.saved-lists-section {
   background: var(--surface);
   border: 1px solid rgba(209, 219, 232, 0.9);
   border-radius: 24px;
@@ -558,6 +559,130 @@ textarea:focus {
   padding: 34px 42px 40px;
 }
 
+.saved-lists-section {
+  margin-top: 24px;
+  padding: 28px 42px 32px;
+}
+
+.saved-lists-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.saved-lists-heading > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.saved-lists-message,
+.saved-lists-empty {
+  margin: 20px 0 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.saved-lists-message {
+  padding: 10px 12px;
+  border-radius: 9px;
+  background: var(--blue-soft);
+  color: #33577f;
+  font-weight: 650;
+}
+
+.saved-list-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.saved-list-card {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  min-width: 0;
+  padding: 17px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: #fbfcfe;
+}
+
+.saved-list-card h3 {
+  overflow: hidden;
+  margin: 0 0 3px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.95rem;
+}
+
+.saved-list-card strong {
+  color: var(--blue-dark);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.82rem;
+}
+
+.saved-list-card dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.saved-list-card dt {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.saved-list-card dd {
+  margin: 2px 0 0;
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.saved-list-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.saved-list-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+}
+
+.saved-list-actions .secondary-button {
+  flex: 1;
+}
+
+.saved-list-actions svg {
+  width: 14px;
+  height: 14px;
+}
+
+.saved-list-delete {
+  border: 1px solid #f0d5da;
+  border-radius: 9px;
+  padding: 7px 10px;
+  color: var(--danger);
+  background: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.saved-list-delete:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 .complete-heading {
   justify-content: flex-start;
   align-items: center;
@@ -816,7 +941,8 @@ footer span:last-child {
 
 @media (max-width: 840px) {
   .workspace,
-  .results-section {
+  .results-section,
+  .saved-lists-section {
     padding: 28px;
     border-radius: 20px;
   }
@@ -837,6 +963,10 @@ footer span:last-child {
 
   .summary-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .saved-list-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -873,9 +1003,20 @@ footer span:last-child {
   }
 
   .workspace,
-  .results-section {
+  .results-section,
+  .saved-lists-section {
     padding: 23px 18px;
     border-radius: 17px;
+  }
+
+  .saved-lists-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .saved-list-grid {
+    grid-template-columns: 1fr;
   }
 
   .intro-row {
