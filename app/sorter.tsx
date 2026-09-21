@@ -634,15 +634,6 @@ export default function Sorter() {
         </section>
       </section>
 
-      <SavedListsPanel
-        lists={savedLists}
-        loading={savedListsLoading}
-        busyJobId={savedListsBusyJobId}
-        message={savedListsMessage}
-        onOpen={openSavedList}
-        onDelete={removeSavedList}
-      />
-
       {phase === "complete" && (
         <section className="results-section" aria-labelledby="results-heading">
           <div className="complete-heading">
@@ -668,6 +659,15 @@ export default function Sorter() {
           />
         </section>
       )}
+
+      <SavedListsPanel
+        lists={savedLists}
+        loading={savedListsLoading}
+        busyJobId={savedListsBusyJobId}
+        message={savedListsMessage}
+        onOpen={openSavedList}
+        onDelete={removeSavedList}
+      />
 
       <footer>
         <span><Globe2 aria-hidden="true" />DNS and MX records only</span>
