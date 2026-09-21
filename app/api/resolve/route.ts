@@ -1,4 +1,5 @@
 import { resolveDomain } from "@/lib/dns";
+import { getCurrentSession } from "@/lib/auth/server";
 import type { ResolveResponse } from "@/lib/types";
 
 export const maxDuration = 60;
@@ -26,40 +27,58 @@ async function mapWithConcurrency<T, R>(
   return results;
 }
 
-export async function POST(request: Request): Promise<Response> {
-  let payload: unknown;
+type ResolveDependencies = {
+  authenticate: () => Promise<unknown>;
+  resolve: typeof resolveDomain;
+};
 
-  try {
-    payload = await request.json();
-  } catch {
-    return Response.json({ error: "Invalid JSON body" }, { status: 400 });
-  }
+const defaultDependencies: ResolveDependencies = {
+  authenticate: getCurrentSession,
+  resolve: resolveDomain,
+};
 
-  const rawDomains =
-    typeof payload === "object" && payload !== null && "domains" in payload
-      ? (payload as { domains?: unknown }).domains
-      : undefined;
+export function createResolveHandler(dependencies: ResolveDependencies = defaultDependencies) {
+  return async function handleResolve(request: Request): Promise<Response> {
+    if (!(await dependencies.authenticate())) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  if (!Array.isArray(rawDomains)) {
-    return Response.json({ error: "domains must be an array" }, { status: 400 });
-  }
+    let payload: unknown;
 
-  const domains = [...new Set(rawDomains)]
-    .filter((value): value is string => typeof value === "string")
-    .map((value) => value.trim().toLowerCase())
-    .filter((value) => DOMAIN_PATTERN.test(value));
+    try {
+      payload = await request.json();
+    } catch {
+      return Response.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
 
-  if (domains.length === 0) {
-    return Response.json({ results: [] } satisfies ResolveResponse);
-  }
+    const rawDomains =
+      typeof payload === "object" && payload !== null && "domains" in payload
+        ? (payload as { domains?: unknown }).domains
+        : undefined;
 
-  if (domains.length > MAX_DOMAINS_PER_REQUEST) {
-    return Response.json(
-      { error: `A maximum of ${MAX_DOMAINS_PER_REQUEST} domains is allowed per request` },
-      { status: 413 },
-    );
-  }
+    if (!Array.isArray(rawDomains)) {
+      return Response.json({ error: "domains must be an array" }, { status: 400 });
+    }
 
-  const results = await mapWithConcurrency(domains, 24, resolveDomain);
-  return Response.json({ results } satisfies ResolveResponse);
+    const domains = [...new Set(rawDomains)]
+      .filter((value): value is string => typeof value === "string")
+      .map((value) => value.trim().toLowerCase())
+      .filter((value) => DOMAIN_PATTERN.test(value));
+
+    if (domains.length === 0) {
+      return Response.json({ results: [] } satisfies ResolveResponse);
+    }
+
+    if (domains.length > MAX_DOMAINS_PER_REQUEST) {
+      return Response.json(
+        { error: `A maximum of ${MAX_DOMAINS_PER_REQUEST} domains is allowed per request` },
+        { status: 413 },
+      );
+    }
+
+    const results = await mapWithConcurrency(domains, 24, dependencies.resolve);
+    return Response.json({ results } satisfies ResolveResponse);
+  };
 }
+
+export const POST = createResolveHandler();

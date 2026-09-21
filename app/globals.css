@@ -75,6 +75,33 @@ input:focus-visible,
   margin-bottom: 26px;
 }
 
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+}
+
+.topbar-actions form {
+  margin: 0;
+}
+
+.lock-button {
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 7px 12px;
+  color: #526078;
+  background: #fff;
+  font-size: 0.78rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.lock-button:hover {
+  border-color: #9fb9de;
+  color: var(--blue-dark);
+}
+
 .brand-mark {
   width: 210px;
   height: 58px;
@@ -682,6 +709,13 @@ td:last-child {
   text-align: right;
 }
 
+.result-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .export-button {
   display: inline-flex;
   align-items: center;
@@ -708,6 +742,76 @@ footer {
 
 footer span:last-child {
   font-weight: 500;
+}
+
+.lock-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.lock-card {
+  width: min(100%, 430px);
+  padding: 38px;
+  border: 1px solid rgba(209, 219, 232, 0.9);
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.lock-brand {
+  width: 210px;
+  margin-bottom: 28px;
+}
+
+.lock-brand img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.lock-card h1 {
+  margin-bottom: 10px;
+  font-size: 2rem;
+}
+
+.lock-copy {
+  margin-bottom: 24px;
+  color: var(--muted);
+}
+
+.lock-form {
+  display: grid;
+  gap: 12px;
+}
+
+.lock-form label {
+  font-size: 0.85rem;
+  font-weight: 750;
+}
+
+.lock-form input {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid #b7c7db;
+  border-radius: 11px;
+  padding: 10px 12px;
+  color: var(--ink);
+  background: #fff;
+}
+
+.lock-form input:focus {
+  border-color: var(--blue);
+}
+
+.lock-form .primary-button {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.lock-error {
+  margin-top: 0;
 }
 
 @media (max-width: 840px) {
@@ -745,6 +849,16 @@ footer span:last-child {
   .topbar {
     align-items: flex-start;
     margin-bottom: 14px;
+  }
+
+  .topbar-actions {
+    align-items: flex-end;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .lock-card {
+    padding: 30px 24px;
   }
 
   .brand-mark {
@@ -838,6 +952,12 @@ footer span:last-child {
   }
 
   .export-button {
+    width: 100%;
+  }
+
+  .result-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 100%;
   }
 
