@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentSession } from "@/lib/auth/server";
-import { extractProfessionals } from "@/lib/extractor";
+import { extractEmails } from "@/lib/extractor";
 import { parseExtractorQuery } from "@/lib/extractor/query-parser";
 
 export const runtime = "nodejs";

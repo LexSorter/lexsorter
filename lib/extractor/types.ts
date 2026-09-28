@@ -26,7 +26,7 @@ export type ExtractedLead = {
 export type ExtractionResponse = {
   query: ExtractorQuery;
   leads: ExtractedLead[];
-  discovered: number;
+  discovered: DiscoveredPlace[];
   pagesCrawled: number;
   emailsFound: number;
 };
