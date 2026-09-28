@@ -32,8 +32,8 @@ export async function POST(request: Request) {
     const result = await extractEmails(query);
 
     return NextResponse.json({
-      query,
       ...result,
+      query,
     });
   } catch (error) {
     const message =
