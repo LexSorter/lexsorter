@@ -29,7 +29,7 @@ export async function POST(request: Request) {
 
     const query = parseExtractorQuery(body.query);
 
-    const result = await extractProfessionals(query);
+    const result = await extractEmails(query);
 
     return NextResponse.json({
       query,
